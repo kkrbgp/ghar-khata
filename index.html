@@ -17,9 +17,6 @@
 <body>
 <title>Ghar Khata</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Young+Serif&display=swap">
 <style>
 /* Layout: one passbook per person. Sticky header holds the person tabs; section tabs sit at the bottom for thumb reach. Each person has their own ink colour. */
 :root{
@@ -27,9 +24,9 @@
   --ink:#12302A; --muted:#566F68; --accent:var(--c0); --accent-ink:#FFFFFF;
   --credit:#1D7442; --debit:#AE3528; --warn:#9A6512; --warn-bg:#F7ECD6;
   --c0:#0B6B5A; --c1:#7A3B8F; --c2:#9A5300; --c3:#2457A6; --c4:#AE3258; --c5:#4D6B12; --cfam:#3A3F63;
-  --display:"Young Serif", Georgia, "Times New Roman", serif;
-  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --display:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --body:-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --paper:#0D1614; --surface:#14201D; --tint:#1A2925; --line:#26382F;
@@ -251,6 +248,18 @@ tr.fut td{color:var(--muted)}
 .links a{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-bottom:1px dashed var(--line);color:var(--ink);text-decoration:none;font-size:14px}
 .links a span{color:var(--muted);font-size:12px;text-align:right}
 .links a:hover{color:var(--accent)}
+.lock{position:fixed;inset:0;z-index:60;background:var(--paper);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.lockcard{width:100%;max-width:340px;display:flex;flex-direction:column;gap:14px;align-items:stretch;text-align:center}
+.lockcard h2{font-size:26px}
+.lockcard input{font-family:var(--mono);font-size:26px;letter-spacing:.4em;text-align:center;border:1.5px solid var(--line);background:var(--surface);border-radius:10px;padding:10px;width:100%}
+.lockcard input:focus{border-color:var(--accent);outline:none}
+.lockcard .btn{padding:11px 14px;font-size:15px}
+.lockmark{width:56px;height:56px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;margin:0 auto}
+.lockmark svg{width:28px;height:28px;stroke:currentColor;fill:none;stroke-width:1.8}
+body.locked .wrap,body.locked nav.tabs,body.locked .toast{visibility:hidden}
+.pwrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:420px){.pwrow{grid-template-columns:1fr}}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:20;background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:8px;font-size:14px;font-weight:500;max-width:calc(100% - 32px);box-shadow:0 4px 14px rgb(0 0 0 / .2)}
 .toast.bad{background:var(--debit);color:#fff}
 
@@ -332,6 +341,7 @@ nav.tabs button[aria-selected="true"]{color:var(--accent)}
 @media (prefers-reduced-motion:no-preference){.fill{transition:width .3s ease}}
 </style>
 
+<div class="lock" id="lockScreen" hidden></div>
 <div class="wrap">
   <header class="top">
     <div class="toprow">
@@ -1067,8 +1077,8 @@ function chartSVG(c,labels,series,type,sel){
   let g='';
   if(sel!=null)g+=`<rect x="${(L+cw*sel).toFixed(1)}" y="${T}" width="${cw.toFixed(1)}" height="${H-T-B}" fill="var(--tint)"/>`;
   for(let v=mn;v<=mx+step/2;v+=step){const yy=y(v).toFixed(1),z=Math.abs(v)<step/2;
-    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${z?'var(--muted)':'var(--line)'}" stroke-width="1" ${z?'':'stroke-dasharray="3 4"'}/><text x="${L-6}" y="${(+yy+4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${v<0?'−':''}${shortRs(Math.abs(v))}</text>`}
-  labels.forEach((lb,i)=>{g+=`<text x="${xc(i).toFixed(1)}" y="${H-9}" text-anchor="middle" font-size="${n>8?11.5:12.5}" fill="${i===sel?'var(--ink)':'var(--muted)'}" font-weight="${i===sel?600:400}" font-family="IBM Plex Sans, sans-serif">${esc(lb)}</text>`});
+    g+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="${z?'var(--muted)':'var(--line)'}" stroke-width="1" ${z?'':'stroke-dasharray="3 4"'}/><text x="${L-6}" y="${(+yy+4).toFixed(1)}" text-anchor="end" font-size="12" fill="var(--muted)" font-family="ui-monospace, Menlo, monospace">${v<0?'−':''}${shortRs(Math.abs(v))}</text>`}
+  labels.forEach((lb,i)=>{g+=`<text x="${xc(i).toFixed(1)}" y="${H-9}" text-anchor="middle" font-size="${n>8?11.5:12.5}" fill="${i===sel?'var(--ink)':'var(--muted)'}" font-weight="${i===sel?600:400}" font-family="-apple-system, system-ui, sans-serif">${esc(lb)}</text>`});
   const y0=y(0);
   if(type==='bar'){const k=series.length,gw=Math.min(cw*0.82,k*18),bw=Math.max(2,gw/k-2);
     series.forEach((s,j)=>s.vals.forEach((v,i)=>{if(v==null)return;const x=xc(i)-gw/2+j*(gw/k)+1,y1=y(v);
@@ -1118,11 +1128,11 @@ function shortRs(v){return v>=1e5?(v/1e5).toFixed(v%1e5?1:0)+'L':v>=1e3?(v/1e3).
 function fyChart(data,sel){
   const W=640,H=220,L=44,Bm=26,T=10,max=niceMax(Math.max(...data.map(d=>Math.max(d.i,d.e)))),cw=(W-L-6)/12,bw=Math.min(16,cw/2-3);
   const y=v=>T+(H-T-Bm)*(1-v/max);let g='';
-  for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);g+=`<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${shortRs(v)}</text>`}
+  for(let i=0;i<=4;i++){const v=max*i/4,yy=y(v);g+=`<line x1="${L}" x2="${W}" y1="${yy}" y2="${yy}" stroke="var(--line)" stroke-width="1"/><text x="${L-6}" y="${yy+4}" text-anchor="end" font-size="11" fill="var(--muted)" font-family="ui-monospace, Menlo, monospace">${shortRs(v)}</text>`}
   data.forEach((d,i)=>{const x=L+i*cw+cw/2;
     g+=`<rect x="${x-bw-1}" y="${y(d.i)}" width="${bw}" height="${Math.max(0,H-Bm-y(d.i))}" fill="var(--credit)" rx="2"/>`;
     g+=`<rect x="${x+1}" y="${y(d.e)}" width="${bw}" height="${Math.max(0,H-Bm-y(d.e))}" fill="var(--debit)" rx="2"/>`;
-    g+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="11" fill="${d.m===sel?'var(--ink)':'var(--muted)'}" font-weight="${d.m===sel?600:400}" font-family="IBM Plex Sans, sans-serif">${MN[+d.m.slice(5)-1]}</text>`});
+    g+=`<text x="${x}" y="${H-8}" text-anchor="middle" font-size="11" fill="${d.m===sel?'var(--ink)':'var(--muted)'}" font-weight="${d.m===sel?600:400}" font-family="-apple-system, system-ui, sans-serif">${MN[+d.m.slice(5)-1]}</text>`});
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Monthly income and spending">${g}</svg>`;
 }
 
@@ -1319,6 +1329,7 @@ function renderSettings(){
     ${impView('bank')}${li('bank')}
     <p class="impnote">Bank PDFs are often protected with a password such as your customer ID or date of birth; the bank's email says which.</p>
   </div>
+  ${lockPanel()}
   ${backupPanel()}
   <div class="panel filebox" id="csvBox"><h3>Export & import entries</h3>
     <p class="small muted" style="margin:0">Export every entry for everyone as a CSV file that opens in Excel or Google Sheets. Import adds entries from a CSV in the same layout (Person, Date, Type, Category, Account, To account, Amount, Note).</p>
@@ -1341,7 +1352,11 @@ function backupPanel(){
     :SHARE_OK?'iCloud / Google Drive opens your phone\'s share sheet: choose "Save to Files" then iCloud Drive, or choose Drive. "Both" also keeps a copy in Downloads.'
     :'This browser has no share sheet, so the cloud option saves the file to Downloads; move it into your iCloud Drive or Google Drive folder from there.';
   let rv='';
-  if(r&&!r.err&&!r.bk)rv=`<div class="notice" style="background:var(--tint)"><span>Reading ${esc(r.file)}…</span></div>`;
+  if(r&&r.enc&&!r.bk)rv=`<div class="notice" style="background:var(--tint)"><span><b style="color:var(--ink)">${esc(r.file)}</b> is password-protected.</span></div>
+    <div class="field" style="max-width:300px"><label for="rsPw">Backup password</label><input type="password" id="rsPw" autocomplete="off" value=""></div>
+    ${r.pwErr?`<p class="impnote" style="color:var(--debit)">${esc(r.pwErr)}</p>`:''}
+    <div class="row-actions" style="justify-content:flex-start"><button class="btn primary" data-act="restoreUnlock">Open backup</button><button class="btn link" data-act="restoreNo">Cancel</button></div>`;
+  else if(r&&!r.err&&!r.bk)rv=`<div class="notice" style="background:var(--tint)"><span>Reading ${esc(r.file)}…</span></div>`;
   else if(r){if(r.err)rv=`<div class="notice"><span><b>${esc(r.err)}</b></span></div>`;
     else{const n=Object.values(r.bk.store).reduce((t,x)=>t+Object.values(x.months||{}).reduce((u,a)=>u+a.length,0),0);
       rv=`<div class="notice" style="background:var(--tint)"><span><b style="color:var(--ink)">${esc(r.file)}</b><br>Saved ${r.bk.saved?fmtShort(String(r.bk.saved).slice(0,10)):'(date unknown)'} · ${r.bk.people.length} people (${esc(r.bk.people.map(p=>p.name).join(', '))}) · ${n} entries</span></div>
@@ -1350,6 +1365,9 @@ function backupPanel(){
   return `<div class="panel filebox" id="bkBox"><h3>Backup & restore</h3>
     <p class="small muted" style="margin:0">A backup is one file holding everyone's books: entries, accounts, budgets, fixed items, tax details and colours. Keep copies somewhere safe, and use one to move your data between Claude, the standalone app and a new phone.</p>
     <p class="impnote">${ds==null?'No backup saved from this device yet.':`Last backup from this device: ${fmtShort(PREF.lastBackup)}${ds?` (${ds} day${ds>1?'s':''} ago)`:' (today)'}.`}</p>
+    <label class="chk"><input type="checkbox" id="bkEnc" ${PREF.bkEnc?'checked':''}><span>Protect backups with a password<br><span class="small muted">The file is encrypted (AES-256). Without the password nobody can read it, not even if it leaks.</span></span></label>
+    ${PREF.bkEnc?`<div class="pwrow"><div class="field"><label for="bkPw1">Backup password</label><input type="password" id="bkPw1" data-bkpw="1" autocomplete="new-password" value="${esc(V.bkPw1||'')}" placeholder="At least 8 characters"></div><div class="field"><label for="bkPw2">Type it again</label><input type="password" id="bkPw2" data-bkpw="2" autocomplete="new-password" value="${esc(V.bkPw2||'')}"></div></div>
+    <p class="impnote" style="color:var(--warn)">Write this password down somewhere safe. If it's forgotten, the backup can't be opened by anyone, including Claude.</p>`:''}
     <div class="row-actions" style="justify-content:flex-start">${btns}</div><p class="impnote">${note}</p>
     <div class="field" style="max-width:260px"><label for="remindSel">Remind me to back up</label><select id="remindSel">${[[0,'Never'],[7,'Every week'],[30,'Every month']].map(([v,l])=>`<option value="${v}"${num(PREF.remind)===v?' selected':''}>${l}</option>`).join('')}</select></div>
     <div class="label" style="margin-top:4px">Restore from a backup file</div>
@@ -1365,8 +1383,98 @@ async function saveFile(name,text,mime,how){
   if(!shared||how==='both'){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
   return shared?(how==='both'?'both':'shared'):'downloaded';
 }
+/* ---- app lock (this device only) ---- */
+let LOCK=null;try{LOCK=JSON.parse(localStorage.getItem('gharkhata.lock')||'null')}catch(e){}
+const LOCKABLE=()=>STANDALONE||S.mode!=='cloud';
+let LOCKED=!!(LOCK&&LOCK.hash&&(STANDALONE||!window.claude)),lockTries=0,lockUntil=0,hiddenAt=0;
+function saveLock(){try{if(LOCK)localStorage.setItem('gharkhata.lock',JSON.stringify(LOCK));else localStorage.removeItem('gharkhata.lock')}catch(e){flash('Could not save the lock setting on this device.')}}
+async function waAvailable(){try{return !!(window.PublicKeyCredential&&window.isSecureContext&&location.protocol==='https:'&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(e){return false}}
+let WA_OK=false;waAvailable().then(v=>{WA_OK=v;if(V.screen==='settings')renderSettings();if(LOCKED)renderLock()});
+function lockNow(){if(!(LOCK&&LOCK.hash))return;LOCKED=true;renderLock()}
+function renderLock(msg){
+  const el=$('#lockScreen');document.body.classList.toggle('locked',LOCKED);el.hidden=!LOCKED;if(!LOCKED){el.innerHTML='';return}
+  const wait=Math.max(0,Math.ceil((lockUntil-Date.now())/1000));
+  el.innerHTML=`<div class="lockcard" role="dialog" aria-label="Ghar Khata is locked"><div class="lockmark"><svg viewBox="0 0 24 24"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div>
+    <h2>Ghar Khata is locked</h2>
+    ${V.lockForgot?`<p class="small" style="margin:0">The PIN can't be recovered. You can erase Ghar Khata's data on this device and then restore it from a backup file.</p>
+      ${V.lockEraseAsk?`<p class="small" style="margin:0"><b class="dr">This deletes every book, entry and setting on this device.</b> Only continue if you have a backup file.</p><button class="btn danger" data-act="lockErase">Yes, erase everything</button>`:`<button class="btn danger" data-act="lockEraseAsk">Erase data on this device</button>`}<button class="btn" data-act="lockBack">Back</button>`
+    :`<input id="lockPin" type="password" inputmode="numeric" autocomplete="off" maxlength="8" aria-label="PIN" ${wait?'disabled':''}>
+    <p class="small" style="margin:0;min-height:1.2em;color:var(--debit)" role="status">${wait?`Too many tries. Wait ${wait} seconds.`:esc(msg||'')}</p>
+    <button class="btn primary" data-act="lockGo" ${wait?'disabled':''}>Unlock</button>
+    ${LOCK&&LOCK.wa&&WA_OK?`<button class="btn" data-act="lockWa">Unlock with Face ID / Touch ID</button>`:''}
+    <button class="btn link" data-act="lockForgot">Forgot PIN?</button>`}</div>`;
+  if(wait)setTimeout(()=>{if(LOCKED)renderLock()},1000);else setTimeout(()=>$('#lockPin')?.focus(),30);
+}
+function unlockOk(){LOCKED=false;lockTries=0;renderLock();renderAll()}
+async function tryPin(){
+  const pin=$('#lockPin')?.value||'';if(!pin)return;if(Date.now()<lockUntil)return;
+  let ok=false;try{ok=(await hashPin(pin,unb64(LOCK.salt),LOCK.iter))===LOCK.hash}catch(e){}
+  if(ok)return unlockOk();
+  lockTries++;if(lockTries>=5)lockUntil=Date.now()+30000*Math.pow(2,Math.min(4,lockTries-5));renderLock('Wrong PIN.');
+}
+async function waRegister(){
+  try{const cred=await navigator.credentials.create({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rp:{name:'Ghar Khata'},
+    user:{id:crypto.getRandomValues(new Uint8Array(16)),name:'Ghar Khata lock',displayName:'Ghar Khata lock'},
+    pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'preferred'},timeout:60000}});
+    if(!cred)throw new Error('x');LOCK.wa=b64(cred.rawId);saveLock();flash('Face ID / Touch ID unlock is on',true)}
+  catch(e){flash(e&&e.name==='NotAllowedError'?'Face ID / Touch ID was not set up.':'This device could not set up Face ID / Touch ID unlock.')}
+  renderSettings();
+}
+async function waUnlock(){
+  try{const a=await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),allowCredentials:[{type:'public-key',id:unb64(LOCK.wa)}],userVerification:'required',timeout:60000}});
+    if(a)unlockOk()}catch(e){renderLock('Face ID / Touch ID did not unlock. Use your PIN.')}
+}
+async function setPin(){
+  const p1=$('#pin1')?.value||'',p2=$('#pin2')?.value||'';
+  if(!/^\d{4,8}$/.test(p1)){flash('Use a PIN of 4 to 8 digits.');return}
+  if(p1!==p2){flash('The two PINs do not match.');return}
+  if(!CRYPTO_OK){flash('This browser cannot store a PIN safely.');return}
+  const salt=crypto.getRandomValues(new Uint8Array(16)),iter=200000;
+  LOCK={...(LOCK||{after:1}),salt:b64(salt),iter,hash:await hashPin(p1,salt,iter)};saveLock();V.pinEdit=false;renderSettings();flash('App lock is on',true);
+}
+async function lockOff(){
+  const p=$('#pinOld')?.value||'';let ok=false;try{ok=(await hashPin(p,unb64(LOCK.salt),LOCK.iter))===LOCK.hash}catch(e){}
+  if(!ok){flash('That PIN is not right.');return}LOCK=null;saveLock();V.pinOff=false;renderSettings();flash('App lock is off',true);
+}
+function lockPanel(){
+  if(!LOCKABLE())return `<div class="panel"><h3 style="margin-bottom:6px">App lock</h3><p class="small muted" style="margin:0">App lock is part of the standalone app on your iPad. Here, your Claude sign-in protects the data.</p></div>`;
+  const on=!!(LOCK&&LOCK.hash);
+  const pinForm=(lbl)=>`<div class="pwrow"><div class="field"><label for="pin1">${lbl}</label><input id="pin1" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="4 to 8 digits"></div><div class="field"><label for="pin2">Type it again</label><input id="pin2" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div></div>`;
+  let body;
+  if(!on)body=`${pinForm('Choose a PIN')}<div class="row-actions" style="justify-content:flex-start"><button class="btn primary" data-act="pinSet">Turn on app lock</button></div>`;
+  else body=`<p class="small" style="margin:0"><b class="cr">On.</b> Ghar Khata asks for the PIN when it opens${num(LOCK.after)?` and after ${LOCK.after} minute${LOCK.after>1?'s':''} away`:' and every time you leave it'}.</p>
+    <div class="field" style="max-width:280px"><label for="lockAfter">Lock again after leaving the app</label><select id="lockAfter">${[[0,'Immediately'],[1,'1 minute'],[5,'5 minutes'],[15,'15 minutes']].map(([v,l])=>`<option value="${v}"${num(LOCK.after)===v?' selected':''}>${l}</option>`).join('')}</select></div>
+    ${WA_OK?(LOCK.wa?`<p class="small" style="margin:0">Face ID / Touch ID unlock is on. <button class="btn link" data-act="waOff" style="padding:0">Turn off</button></p>`:`<div><button class="btn" data-act="waOn">Also unlock with Face ID / Touch ID</button></div>`):''}
+    ${V.pinEdit?pinForm('New PIN')+`<div class="row-actions" style="justify-content:flex-start"><button class="btn primary" data-act="pinSet">Save new PIN</button><button class="btn link" data-act="pinEditNo">Cancel</button></div>`
+    :V.pinOff?`<div class="field" style="max-width:220px"><label for="pinOld">Current PIN</label><input id="pinOld" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><div class="row-actions" style="justify-content:flex-start"><button class="btn danger" data-act="pinOffGo">Turn off app lock</button><button class="btn link" data-act="pinOffNo">Cancel</button></div>`
+    :`<div class="row-actions" style="justify-content:flex-start"><button class="btn" data-act="lockNow">Lock now</button><button class="btn" data-act="pinEdit">Change PIN</button><button class="btn link" data-act="pinOff">Turn off</button></div>`}`;
+  return `<div class="panel filebox" id="lockBox"><h3>App lock</h3><p class="small muted" style="margin:0">Asks for a PIN before anyone can see your books on this device. Your iPad's own passcode is what encrypts the stored data, so keep that on too.</p>${body}
+    <p class="impnote">If the PIN is forgotten, the only way back in is to erase this device's data and restore a backup.</p></div>`;
+}
+document.addEventListener('visibilitychange',()=>{if(!(LOCK&&LOCK.hash))return;
+  if(document.hidden){hiddenAt=Date.now();if(!num(LOCK.after))lockNow()}
+  else if(hiddenAt&&Date.now()-hiddenAt>=num(LOCK.after)*60000)lockNow()});
+/* ---- encryption (Web Crypto: PBKDF2-SHA256 -> AES-256-GCM) ---- */
+const TE=new TextEncoder();
+function b64(buf){const a=new Uint8Array(buf);let s='';for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s)}
+function unb64(t){const s=atob(t),a=new Uint8Array(s.length);for(let i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a}
+const CRYPTO_OK=!!(window.crypto&&crypto.subtle&&window.isSecureContext!==false);
+async function aesKey(pass,salt,iter){const k=await crypto.subtle.importKey('raw',TE.encode(pass),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:'SHA-256',salt,iterations:iter},k,{name:'AES-GCM',length:256},false,['encrypt','decrypt'])}
+async function encryptObj(obj,pass){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),iter=310000;
+  const ct=await crypto.subtle.encrypt({name:'AES-GCM',iv},await aesKey(pass,salt,iter),TE.encode(JSON.stringify(obj)));
+  return{app:'ghar-khata',enc:'AES-256-GCM',kdf:'PBKDF2-SHA256',iter,salt:b64(salt),iv:b64(iv),saved:obj.saved,data:b64(ct)}}
+async function decryptObj(f,pass){const pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(f.iv)},await aesKey(pass,unb64(f.salt),f.iter||310000),unb64(f.data));return JSON.parse(new TextDecoder().decode(pt))}
+async function hashPin(pin,salt,iter){const k=await crypto.subtle.importKey('raw',TE.encode(pin),'PBKDF2',false,['deriveBits']);return b64(await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt,iterations:iter},k,256))}
 async function doBackup(how){
-  try{const r=await saveFile('ghar-khata-backup-'+TODAY+'.json',JSON.stringify(backupObj()),'application/json',how);
+  let text,name='ghar-khata-backup-'+TODAY+'.json';
+  if(PREF.bkEnc){const p1=V.bkPw1||'',p2=V.bkPw2||'';
+    if(!CRYPTO_OK){flash('This browser cannot encrypt files. Turn off password protection or use Safari or Chrome.');return}
+    if(p1.length<8){flash('Use a backup password of at least 8 characters.');$('#bkPw1')?.focus();return}
+    if(p1!==p2){flash('The two passwords do not match.');$('#bkPw2')?.focus();return}
+    try{text=JSON.stringify(await encryptObj(backupObj(),p1));name='ghar-khata-backup-'+TODAY+'-protected.json'}catch(e){flash('Could not encrypt the backup. Try again.');return}}
+  else text=JSON.stringify(backupObj());
+  try{const r=await saveFile(name,text,'application/json',how);
     if(r==='declined'){flash('Backup not saved.');return}
     PREF.lastBackup=TODAY;savePrefs();if(V.screen==='settings')renderSettings();else renderAll();
     flash(r==='shared'?'Backup handed to the share sheet':r==='both'?'Backup shared and saved to this device':r==='downloaded'&&how!=='device'?'Backup saved to Downloads. Move it to iCloud Drive or Google Drive from there.':'Backup saved',true);
@@ -1375,8 +1483,16 @@ async function doBackup(how){
 async function readRestore(el){
   const f=el.files&&el.files[0];if(!f)return;V.restore={file:f.name};
   try{const bk=JSON.parse(await f.text());
+    if(bk&&bk.app==='ghar-khata'&&bk.enc&&bk.data){V.restore.enc=bk;renderSettings();setTimeout(()=>$('#rsPw')?.focus(),50);return}
     if(!bk||bk.app!=='ghar-khata'||!Array.isArray(bk.people)||!bk.people.length||typeof bk.store!=='object')throw new Error('x');
     V.restore.bk=bk}catch(e){V.restore.err='This file is not a Ghar Khata backup. Choose a file named like ghar-khata-backup-2026-10-19.json.'}
+  renderSettings();
+}
+async function unlockRestore(){
+  const r=V.restore,pw=$('#rsPw')?.value||'';if(!r||!r.enc)return;if(!pw){$('#rsPw')?.focus();return}
+  if(!CRYPTO_OK){r.pwErr='This browser cannot decrypt files. Open the app in Safari or Chrome.';renderSettings();return}
+  try{const bk=await decryptObj(r.enc,pw);if(!bk||!Array.isArray(bk.people)||typeof bk.store!=='object')throw new Error('x');r.bk=bk;r.pwErr=null}
+  catch(e){r.pwErr='That password does not open this backup.'}
   renderSettings();
 }
 function normStoreFrom(pid,src){const s=newStore(person(pid)||{id:pid,role:'adult'});if(src){if(src.settings)s.settings=normSettings(src.settings,pid);if(Array.isArray(src.accounts))s.accounts=src.accounts;
@@ -1806,6 +1922,22 @@ document.addEventListener('click',e=>{
   if(act==='export'){exportCSV();return}
   if(act==='exportAll'){exportCSV('all');return}
   if(act==='backup'){doBackup(v);return}
+  if(act==='restoreUnlock'){unlockRestore();return}
+  if(act==='lockGo'){tryPin();return}
+  if(act==='lockWa'){waUnlock();return}
+  if(act==='lockForgot'){V.lockForgot=true;renderLock();return}
+  if(act==='lockBack'){V.lockForgot=false;V.lockEraseAsk=false;renderLock();return}
+  if(act==='lockEraseAsk'){V.lockEraseAsk=true;renderLock();return}
+  if(act==='lockErase'){try{localStorage.removeItem(LSK);localStorage.removeItem('gharkhata.lock')}catch(e){}location.reload();return}
+  if(act==='pinSet'){setPin();return}
+  if(act==='pinEdit'){V.pinEdit=true;V.pinOff=false;renderSettings();return}
+  if(act==='pinEditNo'){V.pinEdit=false;renderSettings();return}
+  if(act==='pinOff'){V.pinOff=true;V.pinEdit=false;renderSettings();return}
+  if(act==='pinOffNo'){V.pinOff=false;renderSettings();return}
+  if(act==='pinOffGo'){lockOff();return}
+  if(act==='lockNow'){lockNow();return}
+  if(act==='waOn'){waRegister();return}
+  if(act==='waOff'){delete LOCK.wa;saveLock();renderSettings();return}
   if(act==='goBackup'){openSettings();setTimeout(()=>$('#bkBox')?.scrollIntoView({behavior:'smooth'}),60);return}
   if(act==='restoreAsk'){V.restore.confirm=true;renderSettings();return}
   if(act==='restoreNo'){if(V.restore?.confirm&&!b.closest('.notice'))V.restore=null;else if(V.restore?.confirm)V.restore.confirm=false;else V.restore=null;const f=$('#restoreFile');if(!V.restore&&f)f.value='';renderSettings();return}
@@ -1843,6 +1975,8 @@ document.addEventListener('keydown',e=>{
   if(id==='np-name'){e.preventDefault();document.querySelector('[data-act="savePerson"]')?.click()}
   if(id==='nc-name'){e.preventDefault();document.querySelector('[data-act="saveCat"]')?.click()}
   if(id==='nc2-name'){e.preventDefault();document.querySelector('[data-act="saveCat2"]')?.click()}
+  if(id==='lockPin'){e.preventDefault();tryPin();return}
+  if(id==='rsPw'){e.preventDefault();unlockRestore();return}
   if(id==='casPw'||id==='bankPw'){e.preventDefault();const k=id.slice(0,-2);if(V[k]?.fileObj)handleFile(k,true)}
 });
 document.addEventListener('change',e=>{
@@ -1851,6 +1985,8 @@ document.addEventListener('change',e=>{
   if(el.id==='restoreFile'){readRestore(el);return}
   if(el.id==='csvInFile'){readCsvIn(el);return}
   if(el.id==='remindSel'){PREF.remind=num(el.value);savePrefs();return}
+  if(el.id==='bkEnc'){PREF.bkEnc=el.checked;savePrefs();renderSettings();return}
+  if(el.id==='lockAfter'){LOCK.after=num(el.value);saveLock();renderSettings();return}
   if(el.id==='casWho'||el.id==='bankWho'){const k=el.id.slice(0,-3);if(V[k]&&V[k].fileObj){handleFile(k,true)}return}
   if(el.dataset.cas&&V.cas){const k=el.dataset.cas,h=V.cas.hold[+el.dataset.i];
     if(k==='date'){if(el.value)V.cas.date=el.value}else if(k==='on')h.on=el.checked;else if(k==='val')h.val=num(el.value);else if(k==='acct')h.acct=el.value;renderSettings();return}
@@ -1872,6 +2008,7 @@ document.addEventListener('change',e=>{
 $('#qa').addEventListener('submit',submitTx);
 document.addEventListener('input',e=>{const el=e.target;
   if(el.dataset.pw){V.pw[el.dataset.pw]=el.value;return}
+  if(el.dataset.bkpw){V['bkPw'+el.dataset.bkpw]=el.value;return}
   if(el.dataset.ci){V.ci[V.calc][el.dataset.ci]=el.value;const o=$('#calcOut');if(o)o.innerHTML=calcOut(V.calc);try{localStorage.setItem('gharkhata.calc',JSON.stringify(V.ci))}catch(x){}}});
 $('#fySel').addEventListener('change',e=>setFY(+e.target.value));
 $('#cancelEdit').addEventListener('click',()=>{cancelEdit();renderToday()});
@@ -1886,6 +2023,7 @@ function addCategory(raw,type,select){
   flash('Added category '+name,true);
 }
 
+renderLock();
 boot();
 </script>
 
